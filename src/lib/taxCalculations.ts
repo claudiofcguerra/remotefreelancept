@@ -236,3 +236,65 @@ export const calculateIrsDetails = (
     irs,
   }
 }
+
+export const calculateMonthlyTaxes = (
+  grossIncome: GrossIncome,
+  income: number | null,
+  incomeFrequency: FrequencyChoices,
+  monthsWorked: number,
+  ssDiscount: number,
+  ssTax: number,
+  iasPerYear: number,
+  ssFirstYear: boolean,
+  benefitsOfYouthIrs: boolean,
+  yearOfYouthIrs: number,
+  youthIrsData: YouthIrs,
+  expenses: number,
+  taxRanks: TaxRank[],
+  firstYear: boolean,
+  secondYear: boolean,
+  rnh: boolean,
+  rnhTax: number
+) => {
+  const ssPay = calculateSsPay(
+    income,
+    incomeFrequency,
+    monthsWorked,
+    0,
+    ssDiscount,
+    ssTax,
+    iasPerYear,
+    ssFirstYear
+  )
+  const youthIrsDiscount = calculateYouthIrsDiscount(
+    grossIncome,
+    benefitsOfYouthIrs,
+    yearOfYouthIrs,
+    youthIrsData,
+    iasPerYear
+  )
+  const irsDetails = calculateIrsDetails(
+    grossIncome,
+    taxRanks,
+    expenses,
+    ssPay,
+    youthIrsDiscount,
+    firstYear,
+    secondYear,
+    rnh,
+    rnhTax
+  )
+  const annualIRS = irsDetails.irs
+  const annualSS = ssPay.year
+  const annualNet = grossIncome.year - annualIRS - annualSS
+  const monthlyNet = annualNet / monthsWorked
+  const monthlyIRS = annualIRS / monthsWorked
+  const monthlySS = annualSS / monthsWorked
+  return {
+    monthlyNet,
+    monthlyIRS,
+    monthlySS,
+    irsDetails,
+    ssPay,
+  }
+}
