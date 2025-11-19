@@ -27,13 +27,25 @@ RUN pnpm run build
 ##########################################################################
 # Stage: dev
 ##########################################################################
-FROM deps AS dev
+FROM node:22 AS dev
 
 ARG PORT=3000
 ENV PORT=${PORT}
+WORKDIR /build-stage
 
-ENTRYPOINT ["/usr/local/bin/pnpm"]
-CMD ["run", "dev"]
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy package files
+COPY package*.json pnpm-lock.yaml ./
+
+# Install dependencies (always fresh for dev)
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+ENTRYPOINT ["/bin/sh", "-c", "pnpm install && pnpm run dev"]
 
 ##########################################################################
 # Stage: test
