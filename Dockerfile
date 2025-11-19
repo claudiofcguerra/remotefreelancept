@@ -3,15 +3,18 @@
 ##########################################################################
 # Stage: deps
 ##########################################################################
-FROM node:18-alpine3.19 AS deps
+FROM node:22 AS deps
 WORKDIR /build-stage
-COPY package*.json ./
+COPY package*.json pnpm-lock.yaml ./
 
-# advanced mount options for caching npm even when docker-cache is busted
-RUN --mount=type=cache,target=/usr/src/app/.npm \
-    : npm install and cache \
-    && npm set cache /usr/src/app/.npm \
-    && npm ci
+# Install pnpm
+RUN npm install -g pnpm
+
+# advanced mount options for caching pnpm even when docker-cache is busted
+RUN --mount=type=cache,target=/usr/src/app/.pnpm \
+    : pnpm install and cache \
+    && pnpm config set store-dir /usr/src/app/.pnpm \
+    && pnpm install --frozen-lockfile
 
 COPY . ./
 
@@ -19,31 +22,40 @@ COPY . ./
 # Stage: builder
 ##########################################################################
 FROM deps as builder
-RUN npm run build
+RUN pnpm run build
 
 ##########################################################################
 # Stage: dev
 ##########################################################################
 FROM deps AS dev
 
-ARG PORT=5173
+ARG PORT=3000
 ENV PORT=${PORT}
 
-ENTRYPOINT ["/usr/local/bin/npm"]
+ENTRYPOINT ["/usr/local/bin/pnpm"]
 CMD ["run", "dev"]
 
 ##########################################################################
-# Stage: dev
+# Stage: test
 ##########################################################################
 FROM deps AS test
 
 ENV CI=1
-RUN npm run vitest
+RUN pnpm run lint
 
 ##########################################################################
 # Stage: final
 ##########################################################################
 
-FROM nginx:1.25-alpine
-COPY --from=builder /build-stage/dist /usr/share/nginx/html
+FROM node:22 AS final
+WORKDIR /app
+COPY --from=builder /build-stage/package*.json /build-stage/pnpm-lock.yaml ./
+COPY --from=builder /build-stage/.next ./.next
+COPY --from=builder /build-stage/public ./public
+
+# Install pnpm and production dependencies
+RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
+
+EXPOSE 3000
+CMD ["pnpm", "run", "start"]
 
