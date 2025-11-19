@@ -7,7 +7,6 @@ export const SUPPORTED_TAX_RANK_YEARS = [2023, 2024, 2025] as const;
 export const convertIncomeFrequency = (
   income: number | null,
   fromFrequency: FrequencyChoices,
-  toFrequency: FrequencyChoices,
   nrMonthsDisplay: number,
   nrDaysOff: number
 ): GrossIncome => {
@@ -58,7 +57,6 @@ export const calculateSsPay = (
   const grossIncome = convertIncomeFrequency(
     income,
     incomeFrequency,
-    FrequencyChoices.Year,
     nrMonthsDisplay,
     nrDaysOff
   );
@@ -92,7 +90,6 @@ export const calculateExpensesAuto = (
   const grossIncome = convertIncomeFrequency(
     income,
     incomeFrequency,
-    FrequencyChoices.Year,
     nrMonthsDisplay,
     nrDaysOff
   );
