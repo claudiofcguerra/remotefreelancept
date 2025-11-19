@@ -1,37 +1,34 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { useTaxesStore } from "../lib/store";
+import { useState } from "react"
+
+import { useTaxesStore } from "../lib/store"
 import {
-  convertIncomeFrequency,
-  calculateSsPay,
   calculateExpensesAuto,
   calculateIrsDetails,
+  calculateSsPay,
   calculateYouthIrsDiscount,
+  convertIncomeFrequency,
   FrequencyChoices,
   SUPPORTED_TAX_RANK_YEARS,
   YEAR_BUSINESS_DAYS,
-} from "../lib/taxCalculations";
+} from "../lib/taxCalculations"
 
 export default function Home() {
-  const store = useTaxesStore();
+  const store = useTaxesStore()
 
-  const [incomeFrequency, setIncomeFrequency] = useState<FrequencyChoices>(
-    FrequencyChoices.Year
-  );
-  const [displayFrequency, setDisplayFrequency] = useState<FrequencyChoices>(
-    FrequencyChoices.Month
-  );
-  const [nrMonthsDisplay, setNrMonthsDisplay] = useState(12);
-  const [nrDaysOff, setNrDaysOff] = useState(0);
-  const [expenses, setExpenses] = useState(0);
+  const [incomeFrequency, setIncomeFrequency] = useState<FrequencyChoices>(FrequencyChoices.Year)
+  const [displayFrequency, setDisplayFrequency] = useState<FrequencyChoices>(FrequencyChoices.Month)
+  const [nrMonthsDisplay, setNrMonthsDisplay] = useState(12)
+  const [nrDaysOff, setNrDaysOff] = useState(0)
+  const [expenses, setExpenses] = useState(0)
 
   const grossIncome = convertIncomeFrequency(
     store.income,
     incomeFrequency,
     nrMonthsDisplay,
     nrDaysOff
-  );
+  )
 
   const ssPay = calculateSsPay(
     store.income,
@@ -42,7 +39,7 @@ export default function Home() {
     store.ssTax,
     store.iasPerYear[store.currentTaxRankYear],
     store.ssFirstYear
-  );
+  )
 
   const youthIrsDiscount = calculateYouthIrsDiscount(
     grossIncome,
@@ -50,7 +47,7 @@ export default function Home() {
     store.yearOfYouthIrs,
     store.youthIrs[store.currentTaxRankYear],
     store.iasPerYear[store.currentTaxRankYear]
-  );
+  )
 
   const irsDetails = calculateIrsDetails(
     grossIncome,
@@ -62,37 +59,37 @@ export default function Home() {
     store.secondYear,
     store.rnh,
     store.rnhTax
-  );
+  )
 
-  const netIncome = grossIncome.year - ssPay.year - irsDetails.irs;
+  const netIncome = grossIncome.year - ssPay.year - irsDetails.irs
 
   const displayGrossIncome = convertIncomeFrequency(
     grossIncome.year,
     FrequencyChoices.Year,
     nrMonthsDisplay,
     nrDaysOff
-  );
+  )
 
   const displaySsPay = convertIncomeFrequency(
     ssPay.year,
     FrequencyChoices.Year,
     nrMonthsDisplay,
     nrDaysOff
-  );
+  )
 
   const displayNetIncome = convertIncomeFrequency(
     netIncome,
     FrequencyChoices.Year,
     nrMonthsDisplay,
     nrDaysOff
-  );
+  )
 
   const displayIrsTax = convertIncomeFrequency(
     irsDetails.irs,
     displayFrequency,
     nrMonthsDisplay,
     nrDaysOff
-  );
+  )
 
   return (
     <div style={{ padding: "20px", fontFamily: "monospace" }}>
@@ -107,9 +104,7 @@ export default function Home() {
         />
         <select
           value={incomeFrequency}
-          onChange={(e) =>
-            setIncomeFrequency(e.target.value as FrequencyChoices)
-          }
+          onChange={(e) => setIncomeFrequency(e.target.value as FrequencyChoices)}
         >
           <option value={FrequencyChoices.Year}>Year</option>
           <option value={FrequencyChoices.Month}>Month</option>
@@ -121,9 +116,7 @@ export default function Home() {
         <label>Show income per: </label>
         <select
           value={displayFrequency}
-          onChange={(e) =>
-            setDisplayFrequency(e.target.value as FrequencyChoices)
-          }
+          onChange={(e) => setDisplayFrequency(e.target.value as FrequencyChoices)}
         >
           <option value={FrequencyChoices.Year}>Year</option>
           <option value={FrequencyChoices.Month}>Month</option>
@@ -198,9 +191,7 @@ export default function Home() {
           value={store.currentTaxRankYear}
           onChange={(e) =>
             store.actions.setCurrentTaxRankYear(
-              Number(
-                e.target.value
-              ) as (typeof SUPPORTED_TAX_RANK_YEARS)[number]
+              Number(e.target.value) as (typeof SUPPORTED_TAX_RANK_YEARS)[number]
             )
           }
         >
@@ -217,18 +208,14 @@ export default function Home() {
           <input
             type="checkbox"
             checked={store.benefitsOfYouthIrs}
-            onChange={(e) =>
-              store.actions.setBenefitsOfYouthIrs(e.target.checked)
-            }
+            onChange={(e) => store.actions.setBenefitsOfYouthIrs(e.target.checked)}
           />
           Benefits of Youth IRS
         </label>
         {store.benefitsOfYouthIrs && (
           <select
             value={store.yearOfYouthIrs}
-            onChange={(e) =>
-              store.actions.setYearOfYouthIrs(Number(e.target.value))
-            }
+            onChange={(e) => store.actions.setYearOfYouthIrs(Number(e.target.value))}
           >
             {Array.from(
               { length: store.currentTaxRankYear === 2025 ? 10 : 5 },
@@ -337,9 +324,7 @@ export default function Home() {
           </thead>
           <tbody>
             <tr>
-              <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                Gross income
-              </td>
+              <td style={{ border: "1px solid #ccc", padding: "8px" }}>Gross income</td>
               <td
                 style={{
                   border: "1px solid #ccc",
@@ -445,9 +430,7 @@ export default function Home() {
                   textAlign: "right",
                 }}
               >
-                {irsDetails.expenses > 0
-                  ? irsDetails.expenses.toFixed(2) + "€"
-                  : "-"}
+                {irsDetails.expenses > 0 ? irsDetails.expenses.toFixed(2) + "€" : "-"}
               </td>
               <td
                 style={{
@@ -691,5 +674,5 @@ export default function Home() {
         </table>
       </div>
     </div>
-  );
+  )
 }

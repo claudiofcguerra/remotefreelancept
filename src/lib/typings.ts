@@ -5,30 +5,30 @@ export enum FrequencyChoices {
 }
 
 export interface GrossIncome {
-  year: number;
-  month: number;
-  day: number;
+  year: number
+  month: number
+  day: number
 }
 
 export interface TaxRank {
-  id: number;
-  min: number;
-  max: number | null;
-  normalTax: number;
-  averageTax: number | null;
+  id: number
+  min: number
+  max: number | null
+  normalTax: number
+  averageTax: number | null
 }
 
 export interface Colors {
-  netIncome: string;
-  irs: string;
-  ss: string;
+  netIncome: string
+  irs: string
+  ss: string
 }
 
 export interface YouthIrsRank {
-  maxDiscountPercentage: number;
-  maxDiscountIasMultiplier: number;
+  maxDiscountPercentage: number
+  maxDiscountIasMultiplier: number
 }
 
 export interface YouthIrs {
-  [key: number] : YouthIrsRank;
+  [key: number]: YouthIrsRank
 }

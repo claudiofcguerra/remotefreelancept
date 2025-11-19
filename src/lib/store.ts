@@ -12,7 +12,7 @@ interface StoredSimulation {
   id: string
   simulationName: string
   createdAt: string
-  parameters: Record<string, string | number | boolean>
+  parameters: Record
 }
 
 interface Actions {
@@ -63,7 +63,7 @@ interface TaxesState {
   actions: Actions
 }
 
-const initialState: Omit<TaxesState, "actions"> = {
+const initialState: Omit = {
   income: null,
   ssDiscount: 0,
   currentTaxRankYear: SUPPORTED_TAX_RANK_YEARS[0],

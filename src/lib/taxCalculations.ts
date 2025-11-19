@@ -1,8 +1,8 @@
-import { FrequencyChoices, GrossIncome, TaxRank, YouthIrs } from "./typings";
+import { FrequencyChoices, GrossIncome, TaxRank, YouthIrs } from "./typings"
 
-export { FrequencyChoices };
-export const YEAR_BUSINESS_DAYS = 248;
-export const SUPPORTED_TAX_RANK_YEARS = [2023, 2024, 2025] as const;
+export { FrequencyChoices }
+export const YEAR_BUSINESS_DAYS = 248
+export const SUPPORTED_TAX_RANK_YEARS = [2023, 2024, 2025] as const
 
 export const convertIncomeFrequency = (
   income: number | null,
@@ -14,31 +14,31 @@ export const convertIncomeFrequency = (
     year: 0,
     month: 0,
     day: 0,
-  };
+  }
 
   if (!income || !nrMonthsDisplay) {
-    return result;
+    return result
   }
 
-  let yearlyIncome: number;
+  let yearlyIncome: number
   switch (fromFrequency) {
     case FrequencyChoices.Year:
-      yearlyIncome = income;
-      break;
+      yearlyIncome = income
+      break
     case FrequencyChoices.Month:
-      yearlyIncome = income * nrMonthsDisplay;
-      break;
+      yearlyIncome = income * nrMonthsDisplay
+      break
     case FrequencyChoices.Day:
-      yearlyIncome = income * (YEAR_BUSINESS_DAYS - nrDaysOff);
-      break;
+      yearlyIncome = income * (YEAR_BUSINESS_DAYS - nrDaysOff)
+      break
   }
 
-  result.year = yearlyIncome;
-  result.month = yearlyIncome / nrMonthsDisplay;
-  result.day = yearlyIncome / (YEAR_BUSINESS_DAYS - nrDaysOff);
+  result.year = yearlyIncome
+  result.month = yearlyIncome / nrMonthsDisplay
+  result.day = yearlyIncome / (YEAR_BUSINESS_DAYS - nrDaysOff)
 
-  return result;
-};
+  return result
+}
 
 export const calculateSsPay = (
   income: number | null,
@@ -51,28 +51,21 @@ export const calculateSsPay = (
   ssFirstYear: boolean
 ): GrossIncome => {
   if (ssFirstYear || !income) {
-    return { year: 0, month: 0, day: 0 };
+    return { year: 0, month: 0, day: 0 }
   }
 
-  const grossIncome = convertIncomeFrequency(
-    income,
-    incomeFrequency,
-    nrMonthsDisplay,
-    nrDaysOff
-  );
+  const grossIncome = convertIncomeFrequency(income, incomeFrequency, nrMonthsDisplay, nrDaysOff)
 
-  const maxSsIncome = 12 * iasPerYear;
-  const monthSS =
-    ssTaxRate *
-    Math.min(maxSsIncome, grossIncome.month * 0.7 * (1 + ssDiscount));
-  const yearSSPay = Math.max(12 * monthSS, 20 * 12);
+  const maxSsIncome = 12 * iasPerYear
+  const monthSS = ssTaxRate * Math.min(maxSsIncome, grossIncome.month * 0.7 * (1 + ssDiscount))
+  const yearSSPay = Math.max(12 * monthSS, 20 * 12)
 
   return {
     year: yearSSPay,
     month: Math.max(monthSS, 20),
     day: yearSSPay / (YEAR_BUSINESS_DAYS - nrDaysOff),
-  };
-};
+  }
+}
 
 export const calculateExpensesAuto = (
   income: number | null,
@@ -85,14 +78,9 @@ export const calculateExpensesAuto = (
   ssFirstYear: boolean,
   maxExpensesTaxRate: number
 ): number => {
-  if (!income) return 0;
+  if (!income) return 0
 
-  const grossIncome = convertIncomeFrequency(
-    income,
-    incomeFrequency,
-    nrMonthsDisplay,
-    nrDaysOff
-  );
+  const grossIncome = convertIncomeFrequency(income, incomeFrequency, nrMonthsDisplay, nrDaysOff)
 
   const ssPay = calculateSsPay(
     income,
@@ -103,24 +91,21 @@ export const calculateExpensesAuto = (
     ssTaxRate,
     iasPerYear,
     ssFirstYear
-  );
+  )
 
-  const specificDeductions = Math.max(
-    4104,
-    Math.min(ssPay.year, 0.1 * grossIncome.year)
-  );
+  const specificDeductions = Math.max(4104, Math.min(ssPay.year, 0.1 * grossIncome.year))
 
-  const maxExpenses = (maxExpensesTaxRate / 100) * grossIncome.year;
-  return Math.max(0, maxExpenses - specificDeductions);
-};
+  const maxExpenses = (maxExpensesTaxRate / 100) * grossIncome.year
+  return Math.max(0, maxExpenses - specificDeductions)
+}
 
 export const isYearOfYouthIrsValid = (
   year: number,
   taxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number]
 ): boolean => {
-  const validRange = taxRankYear === 2025 ? 10 : 5;
-  return year >= 1 && year <= validRange;
-};
+  const validRange = taxRankYear === 2025 ? 10 : 5
+  return year >= 1 && year <= validRange
+}
 
 export const calculateIrsTax = (
   grossIncome: GrossIncome,
@@ -134,37 +119,34 @@ export const calculateIrsTax = (
   yearOfYouthIrs: number,
   youthIrsData: YouthIrs
 ): number => {
-  let taxableIncome = Math.max(0, grossIncome.year - expenses);
+  let taxableIncome = Math.max(0, grossIncome.year - expenses)
 
   if (firstYear) {
-    taxableIncome = 0;
+    taxableIncome = 0
   } else if (secondYear) {
-    taxableIncome *= 0.5;
+    taxableIncome *= 0.5
   }
 
-  let tax = 0;
+  let tax = 0
   for (const rank of taxRanks) {
-    if (
-      grossIncome.year >= rank.min &&
-      (rank.max === null || grossIncome.year < rank.max)
-    ) {
-      tax = taxableIncome * rank.normalTax;
-      break;
+    if (grossIncome.year >= rank.min && (rank.max === null || grossIncome.year < rank.max)) {
+      tax = taxableIncome * rank.normalTax
+      break
     }
   }
 
   if (rnh) {
-    tax = Math.max(tax, taxableIncome * rnhTaxRate);
+    tax = Math.max(tax, taxableIncome * rnhTaxRate)
   }
 
   if (benefitsOfYouthIrs && youthIrsData[yearOfYouthIrs]) {
-    const youthBenefit = youthIrsData[yearOfYouthIrs];
-    const maxDiscount = taxableIncome * youthBenefit.maxDiscountPercentage;
-    tax = Math.max(0, tax - maxDiscount);
+    const youthBenefit = youthIrsData[yearOfYouthIrs]
+    const maxDiscount = taxableIncome * youthBenefit.maxDiscountPercentage
+    tax = Math.max(0, tax - maxDiscount)
   }
 
-  return tax;
-};
+  return tax
+}
 
 export const calculateYouthIrsDiscount = (
   grossIncome: GrossIncome,
@@ -174,14 +156,14 @@ export const calculateYouthIrsDiscount = (
   currentIas: number
 ): number => {
   if (!benefitsOfYouthIrs || !youthIrsData[yearOfYouthIrs]) {
-    return 0;
+    return 0
   }
 
-  const youthIrsRank = youthIrsData[yearOfYouthIrs];
-  const maxDiscount = youthIrsRank.maxDiscountPercentage * grossIncome.year;
-  const maxDiscountIas = youthIrsRank.maxDiscountIasMultiplier * currentIas;
-  return Math.min(maxDiscount, maxDiscountIas);
-};
+  const youthIrsRank = youthIrsData[yearOfYouthIrs]
+  const maxDiscount = youthIrsRank.maxDiscountPercentage * grossIncome.year
+  const maxDiscountIas = youthIrsRank.maxDiscountIasMultiplier * currentIas
+  return Math.min(maxDiscount, maxDiscountIas)
+}
 export const calculateIrsDetails = (
   grossIncome: GrossIncome,
   taxRanks: TaxRank[],
@@ -193,62 +175,54 @@ export const calculateIrsDetails = (
   rnh: boolean,
   rnhTaxRate: number
 ) => {
-  const specificDeductions = Math.max(
-    4104,
-    Math.min(ssPay.year, 0.1 * grossIncome.year)
-  );
+  const specificDeductions = Math.max(4104, Math.min(ssPay.year, 0.1 * grossIncome.year))
 
-  const maxExpenses = 0.15 * grossIncome.year;
-  const expensesNeeded = Math.max(0, maxExpenses - specificDeductions);
+  const maxExpenses = 0.15 * grossIncome.year
+  const expensesNeeded = Math.max(0, maxExpenses - specificDeductions)
 
-  const expensesMissing =
-    expensesNeeded > expenses ? expensesNeeded - expenses : 0;
-  const multiplier = firstYear ? 0.375 : secondYear ? 0.5625 : 0.75;
-  const taxableIncome =
-    (grossIncome.year - youthIrsDiscount) * multiplier + expensesMissing;
+  const expensesMissing = expensesNeeded > expenses ? expensesNeeded - expenses : 0
+  const multiplier = firstYear ? 0.375 : secondYear ? 0.5625 : 0.75
+  const taxableIncome = (grossIncome.year - youthIrsDiscount) * multiplier + expensesMissing
 
-  let taxRankLevel = 1;
-  let normalTax = 0;
-  let averageTax = 0;
+  let taxRankLevel = 1
+  let normalTax = 0
+  let averageTax = 0
   for (let i = 0; i < taxRanks.length; i++) {
-    const rank = taxRanks[i];
-    const isLastRank = i === taxRanks.length - 1;
-    const isBiggerThanMin = rank.min <= taxableIncome;
-    const isSmallerThanMax = rank.max === null || rank.max >= taxableIncome;
+    const rank = taxRanks[i]
+    const isLastRank = i === taxRanks.length - 1
+    const isBiggerThanMin = rank.min <= taxableIncome
+    const isSmallerThanMax = rank.max === null || rank.max >= taxableIncome
 
-    if (
-      (isLastRank && isBiggerThanMin) ||
-      (isBiggerThanMin && isSmallerThanMax)
-    ) {
-      taxRankLevel = rank.id;
-      normalTax = rank.normalTax;
-      averageTax = rank.averageTax || 0;
-      break;
+    if ((isLastRank && isBiggerThanMin) || (isBiggerThanMin && isSmallerThanMax)) {
+      taxRankLevel = rank.id
+      normalTax = rank.normalTax
+      averageTax = rank.averageTax || 0
+      break
     }
   }
 
-  let taxIncomeAvg = 0;
-  let taxIncomeNormal = 0;
+  let taxIncomeAvg = 0
+  let taxIncomeNormal = 0
 
   if (!rnh) {
     if (taxRankLevel <= 1) {
-      taxIncomeAvg = taxableIncome;
-      taxIncomeNormal = 0;
+      taxIncomeAvg = taxableIncome
+      taxIncomeNormal = 0
     } else {
-      const avgRank = taxRanks.find((rank) => rank.id === taxRankLevel - 1);
+      const avgRank = taxRanks.find((rank) => rank.id === taxRankLevel - 1)
       if (avgRank) {
-        taxIncomeAvg = avgRank.max || 0;
-        taxIncomeNormal = taxableIncome - taxIncomeAvg;
-        averageTax = avgRank.averageTax || 0;
+        taxIncomeAvg = avgRank.max || 0
+        taxIncomeNormal = taxableIncome - taxIncomeAvg
+        averageTax = avgRank.averageTax || 0
       }
     }
   }
 
-  let irs = 0;
+  let irs = 0
   if (rnh) {
-    irs = taxableIncome * rnhTaxRate;
+    irs = taxableIncome * rnhTaxRate
   } else {
-    irs = taxIncomeAvg * averageTax + taxIncomeNormal * normalTax;
+    irs = taxIncomeAvg * averageTax + taxIncomeNormal * normalTax
   }
 
   return {
@@ -260,5 +234,5 @@ export const calculateIrsDetails = (
     taxableIncomeForAverageTax: taxIncomeAvg,
     taxableIncomeForNormalTax: taxIncomeNormal,
     irs,
-  };
-};
+  }
+}
