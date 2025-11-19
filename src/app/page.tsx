@@ -86,7 +86,7 @@ export default function Home() {
 
   const displayIrsTax = convertIncomeFrequency(
     irsDetails.irs,
-    displayFrequency,
+    FrequencyChoices.Year,
     nrMonthsDisplay,
     nrDaysOff
   )

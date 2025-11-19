@@ -2,7 +2,7 @@ import { FrequencyChoices, GrossIncome, TaxRank, YouthIrs } from "./typings"
 
 export { FrequencyChoices }
 export const YEAR_BUSINESS_DAYS = 248
-export const SUPPORTED_TAX_RANK_YEARS = [2023, 2024, 2025] as const
+export const SUPPORTED_TAX_RANK_YEARS = [2025, 2024, 2023] as const
 
 export const convertIncomeFrequency = (
   income: number | null,
@@ -181,6 +181,7 @@ export const calculateIrsDetails = (
   const expensesNeeded = Math.max(0, maxExpenses - specificDeductions)
 
   const expensesMissing = expensesNeeded > expenses ? expensesNeeded - expenses : 0
+  
   const multiplier = firstYear ? 0.375 : secondYear ? 0.5625 : 0.75
   const taxableIncome = (grossIncome.year - youthIrsDiscount) * multiplier + expensesMissing
 

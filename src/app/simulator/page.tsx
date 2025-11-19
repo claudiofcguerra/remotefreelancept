@@ -131,8 +131,11 @@ export default function Home() {
   ])
 
   const grossAnnual = convertedIncome.year
-  const monthlyGross = grossAnnual / monthsWorked
-  const { monthlyNet, monthlyIRS, monthlySS, irsDetails } = taxCalculations
+  const { irsDetails, ssPay } = taxCalculations
+
+  const annualNet = grossAnnual - irsDetails.irs - ssPay.year
+  const annualIRS = irsDetails.irs
+  const annualSS = ssPay.year
 
   if (isLoading) {
     return (
@@ -374,7 +377,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="font-mono text-5xl font-bold tracking-tight text-slate-900">
-                  {asCurrency(taxCalculations.monthlyNet, 2)}
+                  {asCurrency(annualNet / 12, 2)}
                 </div>
                 <p className="mt-3 text-sm font-medium text-slate-400">
                   Based on {monthsWorked} months worked
@@ -383,17 +386,17 @@ export default function Home() {
 
               <div className="w-full md:w-auto">
                 <div className="transform rounded-xl bg-white p-5 text-slate-900 shadow-lg transition-transform">
-                  <p className="mb-1 text-xs font-bold tracking-wide text-slate-500 uppercase">
+                  <p className="mt-3 mb-1 text-xs font-bold tracking-wide text-slate-500 uppercase">
                     Total Taxes / Month
                   </p>
                   <div className="flex items-center gap-3">
                     <p className="text-2xl font-bold text-red-500">
-                      -{asCurrency(taxCalculations.monthlyIRS + taxCalculations.monthlySS, 2)}
+                      -{asCurrency((annualIRS + annualSS) / 12, 2)}
                     </p>
                   </div>
                   <div className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-[10px] font-bold text-slate-400">
-                    <span>IRS: {asCurrency(taxCalculations.monthlyIRS, 2)}</span>
-                    <span>SS: {asCurrency(taxCalculations.monthlySS, 2)}</span>
+                    <span>IRS: {asCurrency(annualIRS / 12, 2)}</span>
+                    <span>SS: {asCurrency(annualSS / 12, 2)}</span>
                   </div>
                 </div>
               </div>
@@ -404,7 +407,7 @@ export default function Home() {
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 p-4">
               <h3 className="font-bold text-slate-800">Detailed Breakdown</h3>
               <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-500 shadow-sm">
-                {monthsWorked} months basis
+                Annual basis
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -417,7 +420,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  <TableRow label="Gross Income" val={monthlyGross} total={monthlyGross} />
+                  <TableRow label="Gross Income" val={grossAnnual} total={grossAnnual} />
 
                   <tr className="bg-slate-50/50">
                     <td
@@ -439,32 +442,32 @@ export default function Home() {
 
                   <TableRow
                     label="Specific deductions"
-                    val={irsDetails.specificDeductions / monthsWorked}
-                    total={monthlyGross}
+                    val={irsDetails.specificDeductions}
+                    total={grossAnnual}
                     showPercentage={false}
                     color="text-slate-500"
                     indent
                   />
                   <TableRow
                     label="Expenses"
-                    val={irsDetails.expenses > 0 ? irsDetails.expenses / monthsWorked : 0}
-                    total={monthlyGross}
+                    val={irsDetails.expenses > 0 ? irsDetails.expenses : 0}
+                    total={grossAnnual}
                     showPercentage={false}
                     color="text-slate-500"
                     indent
                   />
                   <TableRow
                     label="Youth IRS Discount"
-                    val={irsDetails.youthIrsDiscount / monthsWorked}
-                    total={monthlyGross}
+                    val={irsDetails.youthIrsDiscount}
+                    total={grossAnnual}
                     showPercentage={false}
                     color="text-slate-500"
                     indent
                   />
                   <TableRow
                     label="Taxable income"
-                    val={irsDetails.taxableIncome / monthsWorked}
-                    total={monthlyGross}
+                    val={irsDetails.taxableIncome}
+                    total={grossAnnual}
                     showPercentage={false}
                     color="text-slate-500"
                     indent
@@ -481,24 +484,24 @@ export default function Home() {
 
                   <TableRow
                     label="IRS Withholding"
-                    val={-monthlyIRS}
-                    total={monthlyGross}
+                    val={-annualIRS}
+                    total={grossAnnual}
                     color="text-red-600"
                   />
                   <TableRow
                     label="Social Security"
-                    val={-monthlySS}
-                    total={monthlyGross}
+                    val={-annualSS}
+                    total={grossAnnual}
                     color="text-amber-600"
                   />
 
                   <tr className="bg-emerald-50/30">
                     <td className="py-4 pl-4 font-bold text-slate-900">Net Income</td>
                     <td className="py-4 text-right font-bold text-slate-900">
-                      {asCurrency(monthlyNet, 2)}
+                      {asCurrency(annualNet, 2)}
                     </td>
                     <td className="py-4 pr-4 text-right font-bold text-emerald-600">
-                      {((monthlyNet / monthlyGross) * 100).toFixed(2)}%
+                      {((annualNet / grossAnnual) * 100).toFixed(2)}%
                     </td>
                   </tr>
                 </tbody>

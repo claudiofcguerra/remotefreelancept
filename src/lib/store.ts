@@ -316,7 +316,7 @@ export const useTaxesStore = create<TaxesState>()(
         },
       })),
       {
-        name: "taxes_store",
+        name: "taxes_store_v2",
         partialize: (state) => ({
           income: state.income,
           ssDiscount: state.ssDiscount,
