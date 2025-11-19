@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, useLayoutEffect, useMemo, useState } from "react"
+import { ReactNode, useLayoutEffect, useMemo } from "react"
 import { useTaxesStore } from "@/lib/store"
 import { convertIncomeFrequency } from "@/lib/taxCalculations"
 import { FrequencyChoices } from "@/lib/typings"
@@ -14,18 +14,18 @@ const Card = ({ children, className = "" }: { children: ReactNode; className?: s
 )
 
 export default function Home() {
-  const [isHydrated, setIsHydrated] = useState(false)
   const store = useTaxesStore()
   const {
     income,
     incomeFrequency,
     monthsWorked,
-    actions: { setIncome, setIncomeFrequency, setMonthsWorked },
+    isLoading,
+    actions: { setIncome, setIncomeFrequency, setMonthsWorked, setIsLoading },
   } = store
 
   useLayoutEffect(() => {
+    setIsLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    setIsHydrated(true)
   }, [])
 
   const convertedIncome = useMemo(
@@ -33,7 +33,7 @@ export default function Home() {
     [income, incomeFrequency, monthsWorked]
   )
 
-  if (true) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-800 md:p-8">
         <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center">

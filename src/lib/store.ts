@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { TaxRank, YouthIrs } from "./typings";
+import { persist } from "zustand/middleware";
+import { TaxRank, YouthIrs, FrequencyChoices } from "./typings";
 import { generateUUID } from "./utils";
 import {
   SUPPORTED_TAX_RANK_YEARS,
@@ -34,6 +35,9 @@ interface Actions {
   deleteSimulation: (id: string) => void;
   updateStoredSimulations: () => void;
   storeSimulation: (simulationName: string) => void;
+  setIncomeFrequency: (frequency: FrequencyChoices) => void;
+  setMonthsWorked: (months: number) => void;
+  setIsLoading: (isLoading: boolean) => void;
   reset: () => void;
 }
 
@@ -47,6 +51,9 @@ interface TaxesState {
   ssFirstYear: boolean;
   benefitsOfYouthIrs: boolean;
   yearOfYouthIrs: number;
+  incomeFrequency: FrequencyChoices;
+  monthsWorked: number;
+  isLoading: boolean;
 
   ssDiscountChoices: number[];
   ssTax: number;
@@ -71,6 +78,9 @@ const initialState: Omit<TaxesState, "actions"> = {
   ssFirstYear: false,
   benefitsOfYouthIrs: false,
   yearOfYouthIrs: 1,
+  incomeFrequency: FrequencyChoices.Month,
+  monthsWorked: 12,
+  isLoading: true,
 
   ssDiscountChoices: [
     -0.25, -0.2, -0.15, -0.1, -0.05, 0, +0.05, +0.1, +0.15, +0.2, +0.25,
@@ -152,9 +162,10 @@ const initialState: Omit<TaxesState, "actions"> = {
 
 export const useTaxesStore = create<TaxesState>()(
   devtools(
-    immer((set) => ({
-      ...initialState,
-      actions: {
+    persist(
+      immer((set) => ({
+        ...initialState,
+        actions: {
         setIncome: (value: number) => {
           set((state) => {
             state.income = value <= 0 ? null : value;
@@ -275,6 +286,21 @@ export const useTaxesStore = create<TaxesState>()(
             });
           });
         },
+        setIncomeFrequency: (frequency: FrequencyChoices) => {
+          set((state) => {
+            state.incomeFrequency = frequency;
+          });
+        },
+        setMonthsWorked: (months: number) => {
+          set((state) => {
+            state.monthsWorked = months;
+          });
+        },
+        setIsLoading: (isLoading: boolean) => {
+          set((state) => {
+            state.isLoading = isLoading;
+          });
+        },
         reset: () => {
           set((state) => {
             state.income = null;
@@ -286,10 +312,30 @@ export const useTaxesStore = create<TaxesState>()(
             state.ssFirstYear = false;
             state.benefitsOfYouthIrs = false;
             state.yearOfYouthIrs = 1;
+            state.incomeFrequency = FrequencyChoices.Month;
+            state.monthsWorked = 12;
+            state.isLoading = true;
           });
         },
       },
-    })),
+      })),
+      {
+        name: "taxes_store",
+        partialize: (state) => ({
+          income: state.income,
+          ssDiscount: state.ssDiscount,
+          currentTaxRankYear: state.currentTaxRankYear,
+          firstYear: state.firstYear,
+          secondYear: state.secondYear,
+          rnh: state.rnh,
+          ssFirstYear: state.ssFirstYear,
+          benefitsOfYouthIrs: state.benefitsOfYouthIrs,
+          yearOfYouthIrs: state.yearOfYouthIrs,
+          incomeFrequency: state.incomeFrequency,
+          monthsWorked: state.monthsWorked,
+        }),
+      }
+    ),
     {
       name: "Taxes Store",
       enabled: process.env.NODE_ENV === "development",
