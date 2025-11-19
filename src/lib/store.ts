@@ -1,71 +1,66 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
-import { persist } from "zustand/middleware";
-import { TaxRank, YouthIrs, FrequencyChoices } from "./typings";
-import { generateUUID } from "./utils";
-import {
-  SUPPORTED_TAX_RANK_YEARS,
-  isYearOfYouthIrsValid,
-} from "./taxCalculations";
+import { create } from "zustand"
+import { devtools, persist } from "zustand/middleware"
+import { immer } from "zustand/middleware/immer"
 
-const SIMULATIONS_LOCAL_STORE_KEY = "net_income_simulations";
+import { isYearOfYouthIrsValid, SUPPORTED_TAX_RANK_YEARS } from "./taxCalculations"
+import { FrequencyChoices, TaxRank, YouthIrs } from "./typings"
+import { generateUUID } from "./utils"
+
+const SIMULATIONS_LOCAL_STORE_KEY = "net_income_simulations"
 
 interface StoredSimulation {
-  id: string;
-  simulationName: string;
-  createdAt: string;
-  parameters: Record<string, string | number | boolean>;
+  id: string
+  simulationName: string
+  createdAt: string
+  parameters: Record<string, string | number | boolean>
 }
 
 interface Actions {
-  setIncome: (value: number) => void;
-  setSsDiscount: (value: number) => void;
-  setCurrentTaxRankYear: (
-    taxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number],
-  ) => void;
-  setBenefitsOfYouthIrs: (value: boolean) => void;
-  setYearOfYouthIrs: (year: number) => void;
-  setFirstYear: (value: boolean) => void;
-  setSecondYear: (value: boolean) => void;
-  setRnh: (value: boolean) => void;
-  setSsFirstYear: (value: boolean) => void;
-  setStoredSimulations: (storedSimulations: StoredSimulation[] | null) => void;
-  loadSimulations: () => void;
-  deleteSimulation: (id: string) => void;
-  updateStoredSimulations: () => void;
-  storeSimulation: (simulationName: string) => void;
-  setIncomeFrequency: (frequency: FrequencyChoices) => void;
-  setMonthsWorked: (months: number) => void;
-  setIsLoading: (isLoading: boolean) => void;
-  reset: () => void;
+  setIncome: (value: number) => void
+  setSsDiscount: (value: number) => void
+  setCurrentTaxRankYear: (taxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number]) => void
+  setBenefitsOfYouthIrs: (value: boolean) => void
+  setYearOfYouthIrs: (year: number) => void
+  setFirstYear: (value: boolean) => void
+  setSecondYear: (value: boolean) => void
+  setRnh: (value: boolean) => void
+  setSsFirstYear: (value: boolean) => void
+  setStoredSimulations: (storedSimulations: StoredSimulation[] | null) => void
+  loadSimulations: () => void
+  deleteSimulation: (id: string) => void
+  updateStoredSimulations: () => void
+  storeSimulation: (simulationName: string) => void
+  setIncomeFrequency: (frequency: FrequencyChoices) => void
+  setMonthsWorked: (months: number) => void
+  setIsLoading: (isLoading: boolean) => void
+  reset: () => void
 }
 
 interface TaxesState {
-  income: number | null;
-  ssDiscount: number;
-  currentTaxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number];
-  firstYear: boolean;
-  secondYear: boolean;
-  rnh: boolean;
-  ssFirstYear: boolean;
-  benefitsOfYouthIrs: boolean;
-  yearOfYouthIrs: number;
-  incomeFrequency: FrequencyChoices;
-  monthsWorked: number;
-  isLoading: boolean;
+  income: number | null
+  ssDiscount: number
+  currentTaxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number]
+  firstYear: boolean
+  secondYear: boolean
+  rnh: boolean
+  ssFirstYear: boolean
+  benefitsOfYouthIrs: boolean
+  yearOfYouthIrs: number
+  incomeFrequency: FrequencyChoices
+  monthsWorked: number
+  isLoading: boolean
 
-  ssDiscountChoices: number[];
-  ssTax: number;
-  rnhTax: number;
-  maxExpensesTax: number;
-  taxRanks: { [K in (typeof SUPPORTED_TAX_RANK_YEARS)[number]]: TaxRank[] };
-  iasPerYear: { [K in (typeof SUPPORTED_TAX_RANK_YEARS)[number]]: number };
-  youthIrs: { [K in (typeof SUPPORTED_TAX_RANK_YEARS)[number]]: YouthIrs };
+  ssDiscountChoices: number[]
+  ssTax: number
+  rnhTax: number
+  maxExpensesTax: number
+  taxRanks: { [K in (typeof SUPPORTED_TAX_RANK_YEARS)[number]]: TaxRank[] }
+  iasPerYear: { [K in (typeof SUPPORTED_TAX_RANK_YEARS)[number]]: number }
+  youthIrs: { [K in (typeof SUPPORTED_TAX_RANK_YEARS)[number]]: YouthIrs }
 
-  storedSimulations: StoredSimulation[] | null;
+  storedSimulations: StoredSimulation[] | null
 
-  actions: Actions;
+  actions: Actions
 }
 
 const initialState: Omit<TaxesState, "actions"> = {
@@ -82,9 +77,7 @@ const initialState: Omit<TaxesState, "actions"> = {
   monthsWorked: 12,
   isLoading: true,
 
-  ssDiscountChoices: [
-    -0.25, -0.2, -0.15, -0.1, -0.05, 0, +0.05, +0.1, +0.15, +0.2, +0.25,
-  ],
+  ssDiscountChoices: [-0.25, -0.2, -0.15, -0.1, -0.05, 0, +0.05, +0.1, +0.15, +0.2, +0.25],
   ssTax: 0.214,
   rnhTax: 0.2,
   maxExpensesTax: 15,
@@ -158,7 +151,7 @@ const initialState: Omit<TaxesState, "actions"> = {
   },
 
   storedSimulations: null,
-};
+}
 
 export const useTaxesStore = create<TaxesState>()(
   devtools(
@@ -166,158 +159,152 @@ export const useTaxesStore = create<TaxesState>()(
       immer((set) => ({
         ...initialState,
         actions: {
-        setIncome: (value: number) => {
-          set((state) => {
-            state.income = value <= 0 ? null : value;
-          });
-        },
-        setSsDiscount: (value: number) => {
-          set((state) => {
-            state.ssDiscount = value;
-          });
-        },
-        setCurrentTaxRankYear: (
-          taxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number],
-        ) => {
-          set((state) => {
-            state.currentTaxRankYear = taxRankYear;
-          });
-        },
-        setBenefitsOfYouthIrs: (value: boolean) => {
-          set((state) => {
-            state.benefitsOfYouthIrs = value;
-          });
-        },
-        setYearOfYouthIrs: (year: number) => {
-          set((state) => {
-            if (isYearOfYouthIrsValid(year, state.currentTaxRankYear)) {
-              state.yearOfYouthIrs = year;
-            }
-          });
-        },
-        setFirstYear: (value: boolean) => {
-          set((state) => {
-            state.firstYear = value;
-            if (value && state.secondYear) {
-              state.secondYear = false;
-            }
-          });
-        },
-        setSecondYear: (value: boolean) => {
-          set((state) => {
-            state.secondYear = value;
-            if (value) {
-              state.firstYear = false;
-            }
-          });
-        },
-        setRnh: (value: boolean) => {
-          set((state) => {
-            state.rnh = value;
-          });
-        },
-        setSsFirstYear: (value: boolean) => {
-          set((state) => {
-            state.ssFirstYear = value;
-          });
-        },
-        setStoredSimulations: (storedSimulations: StoredSimulation[] | null) => {
-          set((state) => {
-            state.storedSimulations = storedSimulations;
-          });
-        },
-        loadSimulations: () => {
-          set((state) => {
-            if (!state.storedSimulations) {
-              const simulations =
-                typeof window !== "undefined"
-                  ? localStorage.getItem(SIMULATIONS_LOCAL_STORE_KEY)
-                  : null;
-              state.storedSimulations = simulations
-                ? JSON.parse(simulations)
-                : [];
-            }
-          });
-        },
-        deleteSimulation: (id: string) => {
-          set((state) => {
-            const index = state.storedSimulations?.findIndex(
-              (s: StoredSimulation) => s.id === id,
-            );
-            if (index !== undefined && index !== -1 && state.storedSimulations) {
-              state.storedSimulations.splice(index, 1);
+          setIncome: (value: number) => {
+            set((state) => {
+              state.income = value <= 0 ? null : value
+            })
+          },
+          setSsDiscount: (value: number) => {
+            set((state) => {
+              state.ssDiscount = value
+            })
+          },
+          setCurrentTaxRankYear: (taxRankYear: (typeof SUPPORTED_TAX_RANK_YEARS)[number]) => {
+            set((state) => {
+              state.currentTaxRankYear = taxRankYear
+            })
+          },
+          setBenefitsOfYouthIrs: (value: boolean) => {
+            set((state) => {
+              state.benefitsOfYouthIrs = value
+            })
+          },
+          setYearOfYouthIrs: (year: number) => {
+            set((state) => {
+              if (isYearOfYouthIrsValid(year, state.currentTaxRankYear)) {
+                state.yearOfYouthIrs = year
+              }
+            })
+          },
+          setFirstYear: (value: boolean) => {
+            set((state) => {
+              state.firstYear = value
+              if (value && state.secondYear) {
+                state.secondYear = false
+              }
+            })
+          },
+          setSecondYear: (value: boolean) => {
+            set((state) => {
+              state.secondYear = value
+              if (value) {
+                state.firstYear = false
+              }
+            })
+          },
+          setRnh: (value: boolean) => {
+            set((state) => {
+              state.rnh = value
+            })
+          },
+          setSsFirstYear: (value: boolean) => {
+            set((state) => {
+              state.ssFirstYear = value
+            })
+          },
+          setStoredSimulations: (storedSimulations: StoredSimulation[] | null) => {
+            set((state) => {
+              state.storedSimulations = storedSimulations
+            })
+          },
+          loadSimulations: () => {
+            set((state) => {
+              if (!state.storedSimulations) {
+                const simulations =
+                  typeof window !== "undefined"
+                    ? localStorage.getItem(SIMULATIONS_LOCAL_STORE_KEY)
+                    : null
+                state.storedSimulations = simulations ? JSON.parse(simulations) : []
+              }
+            })
+          },
+          deleteSimulation: (id: string) => {
+            set((state) => {
+              const index = state.storedSimulations?.findIndex((s: StoredSimulation) => s.id === id)
+              if (index !== undefined && index !== -1 && state.storedSimulations) {
+                state.storedSimulations.splice(index, 1)
+                set((s) => {
+                  s.actions.updateStoredSimulations()
+                })
+              }
+            })
+          },
+          updateStoredSimulations: () => {
+            set((state) => {
+              if (typeof window !== "undefined") {
+                localStorage.setItem(
+                  SIMULATIONS_LOCAL_STORE_KEY,
+                  JSON.stringify(state.storedSimulations)
+                )
+              }
+            })
+          },
+          storeSimulation: (simulationName: string) => {
+            set((state) => {
+              if (!state.storedSimulations) {
+                set((s) => {
+                  s.actions.loadSimulations()
+                })
+              }
+              if (!Array.isArray(state.storedSimulations)) {
+                state.storedSimulations = []
+              }
+              state.storedSimulations.push({
+                id: generateUUID(),
+                simulationName,
+                createdAt: new Date().toISOString(),
+                parameters: {
+                  income: state.income || 0,
+                  ssDiscount: state.ssDiscount,
+                },
+              })
               set((s) => {
-                s.actions.updateStoredSimulations();
-              });
-            }
-          });
+                s.actions.updateStoredSimulations()
+              })
+            })
+          },
+          setIncomeFrequency: (frequency: FrequencyChoices) => {
+            set((state) => {
+              state.incomeFrequency = frequency
+            })
+          },
+          setMonthsWorked: (months: number) => {
+            set((state) => {
+              state.monthsWorked = months
+            })
+          },
+          setIsLoading: (isLoading: boolean) => {
+            set((state) => {
+              state.isLoading = isLoading
+            })
+          },
+          reset: () => {
+            set((state) => {
+              state.income = null
+              state.ssDiscount = 0
+              state.currentTaxRankYear = SUPPORTED_TAX_RANK_YEARS[0]
+              state.firstYear = false
+              state.secondYear = false
+              state.rnh = false
+              state.ssFirstYear = false
+              state.benefitsOfYouthIrs = false
+              state.yearOfYouthIrs = 1
+              state.incomeFrequency = FrequencyChoices.Month
+              state.monthsWorked = 12
+              state.isLoading = true
+            })
+          },
         },
-        updateStoredSimulations: () => {
-          set((state) => {
-            if (typeof window !== "undefined") {
-              localStorage.setItem(
-                SIMULATIONS_LOCAL_STORE_KEY,
-                JSON.stringify(state.storedSimulations),
-              );
-            }
-          });
-        },
-        storeSimulation: (simulationName: string) => {
-          set((state) => {
-            if (!state.storedSimulations) {
-              set((s) => {
-                s.actions.loadSimulations();
-              });
-            }
-            if (!Array.isArray(state.storedSimulations)) {
-              state.storedSimulations = [];
-            }
-            state.storedSimulations.push({
-              id: generateUUID(),
-              simulationName,
-              createdAt: new Date().toISOString(),
-              parameters: {
-                income: state.income || 0,
-                ssDiscount: state.ssDiscount,
-              },
-            });
-            set((s) => {
-              s.actions.updateStoredSimulations();
-            });
-          });
-        },
-        setIncomeFrequency: (frequency: FrequencyChoices) => {
-          set((state) => {
-            state.incomeFrequency = frequency;
-          });
-        },
-        setMonthsWorked: (months: number) => {
-          set((state) => {
-            state.monthsWorked = months;
-          });
-        },
-        setIsLoading: (isLoading: boolean) => {
-          set((state) => {
-            state.isLoading = isLoading;
-          });
-        },
-        reset: () => {
-          set((state) => {
-            state.income = null;
-            state.ssDiscount = 0;
-            state.currentTaxRankYear = SUPPORTED_TAX_RANK_YEARS[0];
-            state.firstYear = false;
-            state.secondYear = false;
-            state.rnh = false;
-            state.ssFirstYear = false;
-            state.benefitsOfYouthIrs = false;
-            state.yearOfYouthIrs = 1;
-            state.incomeFrequency = FrequencyChoices.Month;
-            state.monthsWorked = 12;
-            state.isLoading = true;
-          });
-        },
-      },
       })),
       {
         name: "taxes_store",
@@ -339,6 +326,6 @@ export const useTaxesStore = create<TaxesState>()(
     {
       name: "Taxes Store",
       enabled: process.env.NODE_ENV === "development",
-    },
-  ),
-);
+    }
+  )
+)
