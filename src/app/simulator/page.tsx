@@ -2,7 +2,12 @@
 
 import { ReactNode, useLayoutEffect, useMemo } from "react"
 import { useTaxesStore } from "@/lib/store"
-import { convertIncomeFrequency } from "@/lib/taxCalculations"
+import {
+  calculateIrsDetails,
+  calculateSsPay,
+  calculateYouthIrsDiscount,
+  convertIncomeFrequency,
+} from "@/lib/taxCalculations"
 import { FrequencyChoices } from "@/lib/typings"
 import { asCurrency } from "@/lib/utils"
 import { Euro, Loader, TrendingUp } from "lucide-react"
@@ -26,6 +31,14 @@ export default function Home() {
     yearOfYouthIrs,
     expenses,
     isLoading,
+    currentTaxRankYear,
+    firstYear,
+    secondYear,
+    ssTax,
+    rnhTax,
+    taxRanks,
+    iasPerYear,
+    youthIrs,
     actions: {
       setIncome,
       setIncomeFrequency,
@@ -49,6 +62,14 @@ export default function Home() {
     () => convertIncomeFrequency(income || 0, incomeFrequency, monthsWorked, 0),
     [income, incomeFrequency, monthsWorked]
   )
+
+  const taxCalculations = useMemo(() => {
+    return {
+      monthlyNet: 1000,
+      monthlyIRS: 1000,
+      monthlySS: 1000,
+    }
+  }, [])
 
   if (isLoading) {
     return (
@@ -133,7 +154,8 @@ export default function Home() {
               </div>
             </div>
           </Card>
-          <Card className="h-fit p-6">
+
+          <Card className="row-span-2 h-fit p-6">
             <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-slate-800">
               <TrendingUp size={20} className="text-blue-600" />
               Tax Settings
@@ -272,6 +294,45 @@ export default function Home() {
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="relative overflow-hidden border-none bg-slate-900 p-8 text-white shadow-2xl shadow-slate-200">
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-emerald-500 opacity-10 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-16 -ml-16 h-64 w-64 rounded-full bg-blue-500 opacity-10 blur-3xl"></div>
+
+            <div className="relative z-10 flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></div>
+                  <p className="text-sm font-bold tracking-wider text-emerald-400 uppercase">
+                    Estimated Net Monthly
+                  </p>
+                </div>
+                <div className="font-mono text-6xl font-bold tracking-tight">
+                  {asCurrency(taxCalculations.monthlyNet)}
+                </div>
+                <p className="mt-3 text-sm font-medium text-slate-400">
+                  Based on {monthsWorked} months worked
+                </p>
+              </div>
+
+              <div className="w-full md:w-auto">
+                <div className="transform rounded-xl bg-white p-5 text-slate-900 shadow-lg transition-transform hover:rotate-0 md:rotate-1">
+                  <p className="mb-1 text-xs font-bold tracking-wide text-slate-500 uppercase">
+                    Total Taxes / Month
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-3xl font-bold text-red-500">
+                      -{asCurrency(taxCalculations.monthlyIRS + taxCalculations.monthlySS)}
+                    </p>
+                  </div>
+                  <div className="mt-2 flex justify-between border-t border-slate-100 pt-2 text-[10px] font-bold text-slate-400">
+                    <span>IRS: {asCurrency(taxCalculations.monthlyIRS)}</span>
+                    <span>SS: {asCurrency(taxCalculations.monthlySS)}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
