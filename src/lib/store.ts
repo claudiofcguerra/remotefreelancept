@@ -25,6 +25,7 @@ interface Actions {
   setSecondYear: (value: boolean) => void
   setRnh: (value: boolean) => void
   setSsFirstYear: (value: boolean) => void
+  setExpenses: (value: number) => void
   setStoredSimulations: (storedSimulations: StoredSimulation[] | null) => void
   loadSimulations: () => void
   deleteSimulation: (id: string) => void
@@ -48,6 +49,7 @@ interface TaxesState {
   yearOfYouthIrs: number
   incomeFrequency: FrequencyChoices
   monthsWorked: number
+  expenses: number
   isLoading: boolean
 
   ssDiscountChoices: number[]
@@ -75,6 +77,7 @@ const initialState: Omit<TaxesState, "actions"> = {
   yearOfYouthIrs: 1,
   incomeFrequency: FrequencyChoices.Month,
   monthsWorked: 12,
+  expenses: 0,
   isLoading: true,
 
   ssDiscountChoices: [-0.25, -0.2, -0.15, -0.1, -0.05, 0, +0.05, +0.1, +0.15, +0.2, +0.25],
@@ -212,6 +215,11 @@ export const useTaxesStore = create<TaxesState>()(
               state.ssFirstYear = value
             })
           },
+          setExpenses: (value: number) => {
+            set((state) => {
+              state.expenses = value
+            })
+          },
           setStoredSimulations: (storedSimulations: StoredSimulation[] | null) => {
             set((state) => {
               state.storedSimulations = storedSimulations
@@ -301,6 +309,7 @@ export const useTaxesStore = create<TaxesState>()(
               state.yearOfYouthIrs = 1
               state.incomeFrequency = FrequencyChoices.Month
               state.monthsWorked = 12
+              state.expenses = 0
               state.isLoading = true
             })
           },
@@ -320,6 +329,7 @@ export const useTaxesStore = create<TaxesState>()(
           yearOfYouthIrs: state.yearOfYouthIrs,
           incomeFrequency: state.incomeFrequency,
           monthsWorked: state.monthsWorked,
+          expenses: state.expenses,
         }),
       }
     ),
