@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Remote Freelancer from Portugal 🇵🇹
 
-## Getting Started
+Simulate your earnings (year, month or day) and breakdown how much taxes you're going to pay as a freelancer working from Portugal.
 
-First, run the development server:
+live at https://freelancept.fmacedo.com/
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+![preview](img/preview.gif)
+
+## Contributing
+
+Contributions are welcome. Although I enjoy helping people with their financial burdens, I do have limited time to work on this. Feel free to open an issue or submit a pull request. If you're not sure where to start, mention me in the comments!
+
+## Local setup (with node)
+
+### Instal dependencies
+
+```
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Compiles and hot-reloads for development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Compiles and minifies for production
 
-## Learn More
+```
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**vitest**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+npm run vitest
+```
 
-## Deploy on Vercel
+**cypress end to end**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+open:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+npm run cy:e2e:open
+```
+
+run:
+
+```
+npm run cy:e2e:run
+```
+
+## Local setup (with docker)
+
+run as dev (with auto-reload):
+
+```
+docker compose up --build -V
+```
+
+build a production image (image named as `remotefreelancept:latest`) (listening on `:80`):
+
+```
+docker build -t remotefreelancept:latest .
+```
+
+Run tests (vitest):
+
+```
+docker build -t remotefreelancept:test --target=test .
+```
